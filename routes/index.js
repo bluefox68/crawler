@@ -4,19 +4,15 @@ var router = express.Router();
 var superagent = require('superagent-charset');
 var cheerio = require('cheerio');
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  var urlArr = [];
-
-  superagent.get('http://jbk.39.net/zq/manxingbing/zl')
+var getResult = function(url,num,items,res){
+	superagent.get(url)
   	.charset('gb2312')
     .end(function (err, sres) {
 		if (err) {
 			return next(err);
 		}
-		var $ = cheerio.load(sres.text);
-		var items = [];
 
+		var $ = cheerio.load(sres.text);
 		var $item = $(".content .list .item");
 
 		for(var i=0;i<$item.length;i++){
@@ -26,8 +22,24 @@ router.get('/', function(req, res, next) {
 			items.push(json);
 		}
 
-      	res.send(items);
+      	if(num == 99){
+      		res.send(items);
+      	}
     });
+}
+/* GET home page. */
+router.get('/', function(req, res, next) {
+  var items = [];
+
+  var urlArr = [],
+  	  num = 100,
+  	  prefixUrl = "http://jbk.39.net/zq/manxingbing/zl?hsid=0&ybid=0&p=";
+
+  for(var j = 2;j < num;j++){ 
+  	var url = prefixUrl + j;
+  	getResult(url,j,items,res);
+  }
+  
 });
 
 module.exports = router;
